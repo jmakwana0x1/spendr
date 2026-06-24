@@ -43,3 +43,4 @@ public/         manifest.json, sw.js (app-shell offline), icon.svg
 
 The data layer is `localStorage` behind a typed store (`lib/store.tsx`), which is the spec's v1 choice. Swapping in Supabase reads/writes is isolated to that store plus `lib/supabase*.ts`. The NLP parser (`lib/nlp.ts`) is pure and client-side. Out of scope by design: income, running balance, multi-currency, splitting, bank sync, multi-user.
 # spendr
+# spendr
