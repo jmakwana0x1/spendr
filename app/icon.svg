@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0F1115"/>
+  <g fill="#34D399">
+    <!-- gathered, tied top of the sack -->
+    <path d="M206 176 C198 168 188 158 196 148 C214 157 232 159 256 159
+             C280 159 298 157 316 148 C324 158 314 168 306 176
+             C284 185 228 185 206 176 Z"/>
+    <!-- bag body, bulging wide at the bottom -->
+    <path d="M210 178 C150 206 112 286 112 348 C112 432 176 462 256 462
+             C336 462 400 432 400 348 C400 286 362 206 302 178
+             C280 188 232 188 210 178 Z"/>
+  </g>
+  <!-- rupee mark cut into the belly -->
+  <text x="256" y="356" text-anchor="middle" fill="#0F1115"
+        font-family="Inter, 'Segoe UI', system-ui, sans-serif" font-size="170" font-weight="700">&#8377;</text>
+</svg>
