@@ -1,7 +1,13 @@
 import type { Category } from "./types";
+import { uid } from "./format";
 
-// Stable UUIDs so seed categories survive reloads, match across screens, and
-// satisfy Postgres uuid columns / foreign keys when synced to Supabase.
+// The default category set, as a template. The ids below are used ONLY as the
+// offline / pre-sign-in local default (single browser, so a fixed id is safe
+// and keeps SSR hydration stable). They are NOT written to Supabase as-is:
+// every user gets their OWN freshly generated ids via `freshSeedCategories()`
+// at seed time. Reusing one global id across users would make it un-writable
+// by everyone but the first owner (the table's primary key is global, and RLS
+// blocks writing a row you don't own) — the bug that broke multi-user.
 // Muted hues, not neon, so a screen full of chips does not vibrate.
 export const SEED_CATEGORIES: Category[] = [
   {
@@ -87,21 +93,38 @@ export const SEED_CATEGORIES: Category[] = [
   },
 ];
 
-export const OTHER_CATEGORY_ID = "00000000-0000-4000-8000-000000000009";
+// The fallback bucket the NLP parser routes to when nothing else matches.
+// Identified by name (not a fixed id) so it works regardless of which per-user
+// id the category was seeded with.
+export const OTHER_CATEGORY_NAME = "Other";
 
-const SEED_KEYWORDS_BY_ID = new Map(
-  SEED_CATEGORIES.map((c) => [c.id, c.keywords])
+export function isOtherCategory(c: Category): boolean {
+  return c.name.trim().toLowerCase() === OTHER_CATEGORY_NAME.toLowerCase();
+}
+
+export function findOtherCategoryId(categories: Category[]): string | null {
+  return categories.find(isOtherCategory)?.id ?? null;
+}
+
+// A fresh copy of the default categories with NEW per-user ids. Use this for
+// every server-side seed (new account, reset) so two users never share an id.
+export function freshSeedCategories(): Category[] {
+  return SEED_CATEGORIES.map((c) => ({ ...c, id: uid() }));
+}
+
+const SEED_KEYWORDS_BY_NAME = new Map(
+  SEED_CATEGORIES.map((c) => [c.name.toLowerCase(), c.keywords])
 );
 
 // Backfill keyword lists for built-in categories that came back with none.
-// Stored/synced categories are authoritative and the seed lists are otherwise
-// applied only once, so a category that ever landed with empty keywords (older
-// build, manual insert, partial seed) would stay un-matchable forever. This
-// self-heals those without touching user-edited keywords or custom categories.
+// Matched by name (per-user ids vary), so a default category that ever landed
+// with empty keywords (older build, manual insert, partial seed) gets its
+// matching words back without touching user-edited keywords or custom
+// categories.
 export function healSeedKeywords(categories: Category[]): Category[] {
   let changed = false;
   const healed = categories.map((c) => {
-    const seed = SEED_KEYWORDS_BY_ID.get(c.id);
+    const seed = SEED_KEYWORDS_BY_NAME.get(c.name.toLowerCase());
     if (seed && seed.length && (!c.keywords || c.keywords.length === 0)) {
       changed = true;
       return { ...c, keywords: [...seed] };

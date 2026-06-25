@@ -1,5 +1,5 @@
 import type { Category, ParseResult } from "./types";
-import { OTHER_CATEGORY_ID } from "./seed";
+import { findOtherCategoryId } from "./seed";
 
 // Pure client-side parser. Input string -> { amount, categoryId, note }.
 // No API. See claude.md "Local NLP parser".
@@ -29,8 +29,9 @@ export function parseInput(
     .filter(Boolean);
 
   // Categories we can route to. Other is the fallback, never a positive match.
+  const otherId = findOtherCategoryId(categories);
   const active = categories.filter(
-    (c) => !c.is_archived && c.id !== OTHER_CATEGORY_ID
+    (c) => !c.is_archived && c.id !== otherId
   );
 
   let matchedCategoryId: string | null = null;
@@ -84,7 +85,7 @@ export function parseInput(
 
   return {
     amount,
-    categoryId: lastUsedCategoryId ?? OTHER_CATEGORY_ID,
+    categoryId: lastUsedCategoryId ?? otherId,
     note: note,
   };
 }

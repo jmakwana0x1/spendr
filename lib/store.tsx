@@ -26,7 +26,7 @@ import {
   DATA_KEY,
 } from "./storage";
 import { monthStart, todayISO, uid } from "./format";
-import { SEED_CATEGORIES, healSeedKeywords } from "./seed";
+import { freshSeedCategories, healSeedKeywords } from "./seed";
 import { useAuth } from "./auth";
 import {
   applyOp,
@@ -161,9 +161,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         let server = await pullAll(auth.supabase!);
         if (server.categories.length === 0) {
-          // Brand-new account: seed the default categories server-side.
-          await seedRemoteCategories(auth.supabase!, SEED_CATEGORIES, userId);
-          server = { ...server, categories: SEED_CATEGORIES.map((c) => ({ ...c })) };
+          // Brand-new account: seed the default categories server-side with
+          // fresh per-user ids so they never collide with another user's rows.
+          const seeded = freshSeedCategories();
+          await seedRemoteCategories(auth.supabase!, seeded, userId);
+          server = { ...server, categories: seeded };
         }
         // Flush anything queued, then re-pull authoritative state.
         if (opsRef.current.length) {
@@ -414,15 +416,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const resetAll: Store["resetAll"] = useCallback(() => {
     const d = dataRef.current;
+    // Fresh ids for the restored defaults so the inserts can't collide with any
+    // existing row (by id or, after the deletes below, by name).
+    const fresh = freshSeedCategories();
     const ops: SyncOp[] = [];
     if (syncEnabled) {
       for (const e of d.expenses) ops.push({ kind: "delete", table: TABLES.expenses, id: e.id });
       for (const cb of d.categoryBudgets) ops.push({ kind: "delete", table: TABLES.categoryBudgets, id: cb.id });
       for (const b of d.budgets) ops.push({ kind: "delete", table: TABLES.budgets, id: b.id });
       for (const t of d.templates) ops.push({ kind: "delete", table: TABLES.templates, id: t.id });
-      for (const c of SEED_CATEGORIES) ops.push({ kind: "upsert", table: TABLES.categories, id: c.id, row: categoryRow(c, userId) });
+      // Drop every existing category before re-seeding. Safe because all rows
+      // that reference a category (expenses, category budgets, templates) were
+      // queued for deletion above, and the deletes run before the inserts.
+      for (const c of d.categories) ops.push({ kind: "delete", table: TABLES.categories, id: c.id });
+      for (const c of fresh) ops.push({ kind: "upsert", table: TABLES.categories, id: c.id, row: categoryRow(c, userId) });
     }
-    commit(emptyData(), ops);
+    commit({ ...emptyData(), categories: fresh }, ops);
   }, [commit, syncEnabled, userId]);
 
   const syncNow = useCallback(() => void flush(), [flush]);
