@@ -28,31 +28,56 @@ export function parseInput(
     .map((t) => t.replace(/[^a-z0-9]/g, ""))
     .filter(Boolean);
 
-  // 2. Match remaining tokens against each category's keywords. First match wins.
-  let matchedCategoryId: string | null = null;
-  let matchedKeyword: string | null = null;
+  // Categories we can route to. Other is the fallback, never a positive match.
+  const active = categories.filter(
+    (c) => !c.is_archived && c.id !== OTHER_CATEGORY_ID
+  );
 
-  outer: for (const token of tokens) {
-    for (const cat of categories) {
-      if (cat.is_archived) continue;
-      if (cat.keywords.some((k) => k.toLowerCase() === token)) {
-        matchedCategoryId = cat.id;
-        matchedKeyword = token;
-        break outer;
+  let matchedCategoryId: string | null = null;
+  const matchedTokens = new Set<string>();
+
+  // 2. Match the input against each category by keywords AND by name. A category
+  // named "Loan" or "Milk Bill" should match without the user hand-entering
+  // keywords, so the category name is treated as an implicit keyword set.
+  //
+  // Pass A: full-name phrase match (e.g. "milk bill"). Most specific wins, so
+  // categories with longer names are tried first.
+  const byNameSpecificity = [...active].sort(
+    (a, b) => nameTokens(b).length - nameTokens(a).length
+  );
+  for (const cat of byNameSpecificity) {
+    const nt = nameTokens(cat);
+    if (nt.length >= 2 && containsRun(tokens, nt)) {
+      matchedCategoryId = cat.id;
+      nt.forEach((t) => matchedTokens.add(t));
+      break;
+    }
+  }
+
+  // Pass B: single-token match against keywords or name words. The first input
+  // token to match anything wins, mirroring left-to-right reading order.
+  if (!matchedCategoryId) {
+    outer: for (const token of tokens) {
+      for (const cat of active) {
+        if (matchesToken(cat, token)) {
+          matchedCategoryId = cat.id;
+          matchedTokens.add(token);
+          break outer;
+        }
       }
     }
   }
 
-  // 4. Whatever text is not the amount or matched keyword becomes the note.
-  const noteTokens = tokens.filter((t) => t !== matchedKeyword);
+  // 3. Whatever text is not the amount or a matched word becomes the note.
+  const noteTokens = tokens.filter((t) => !matchedTokens.has(t));
   const note = noteTokens.length ? noteTokens.join(" ") : null;
 
   if (matchedCategoryId) {
     return { amount, categoryId: matchedCategoryId, note };
   }
 
-  // 3. No keyword match: fall back to last-used (when only an amount was typed)
-  // or "Other", and keep the full text as the note.
+  // 4. No match: fall back to last-used (when only an amount was typed) or
+  // "Other", and keep the full text as the note.
   if (tokens.length === 0 && lastUsedCategoryId) {
     return { amount, categoryId: lastUsedCategoryId, note: null };
   }
@@ -62,4 +87,38 @@ export function parseInput(
     categoryId: lastUsedCategoryId ?? OTHER_CATEGORY_ID,
     note: note,
   };
+}
+
+// The category name split into normalized word tokens, e.g. "Milk Bill" ->
+// ["milk", "bill"]. Used so the name itself acts as a set of keywords.
+function nameTokens(cat: Category): string[] {
+  return cat.name
+    .toLowerCase()
+    .split(/\s+/)
+    .map((t) => t.replace(/[^a-z0-9]/g, ""))
+    .filter(Boolean);
+}
+
+// True if `cat` should match a single input token, by explicit keyword or by
+// any word in its name.
+function matchesToken(cat: Category, token: string): boolean {
+  if (cat.keywords.some((k) => k.toLowerCase() === token)) return true;
+  return nameTokens(cat).includes(token);
+}
+
+// True if `needle` appears as a contiguous run inside `haystack`, e.g.
+// ["milk","bill"] inside ["300","milk","bill"].
+function containsRun(haystack: string[], needle: string[]): boolean {
+  if (needle.length === 0 || needle.length > haystack.length) return false;
+  for (let i = 0; i <= haystack.length - needle.length; i++) {
+    let ok = true;
+    for (let j = 0; j < needle.length; j++) {
+      if (haystack[i + j] !== needle[j]) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) return true;
+  }
+  return false;
 }

@@ -1,6 +1,6 @@
 import type { AppData } from "./types";
 import type { SyncOp } from "./sync";
-import { SEED_CATEGORIES } from "./seed";
+import { SEED_CATEGORIES, healSeedKeywords } from "./seed";
 
 // v2: seed category ids became UUIDs for Supabase compatibility.
 const KEY = "spendr:data:v2";
@@ -25,7 +25,9 @@ export function loadData(): AppData {
     // Merge with defaults so newly added fields/arrays never come back undefined.
     const base = emptyData();
     return {
-      categories: parsed.categories?.length ? parsed.categories : base.categories,
+      categories: parsed.categories?.length
+        ? healSeedKeywords(parsed.categories)
+        : base.categories,
       expenses: parsed.expenses ?? base.expenses,
       budgets: parsed.budgets ?? base.budgets,
       categoryBudgets: parsed.categoryBudgets ?? base.categoryBudgets,

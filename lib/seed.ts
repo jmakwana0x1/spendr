@@ -88,3 +88,25 @@ export const SEED_CATEGORIES: Category[] = [
 ];
 
 export const OTHER_CATEGORY_ID = "00000000-0000-4000-8000-000000000009";
+
+const SEED_KEYWORDS_BY_ID = new Map(
+  SEED_CATEGORIES.map((c) => [c.id, c.keywords])
+);
+
+// Backfill keyword lists for built-in categories that came back with none.
+// Stored/synced categories are authoritative and the seed lists are otherwise
+// applied only once, so a category that ever landed with empty keywords (older
+// build, manual insert, partial seed) would stay un-matchable forever. This
+// self-heals those without touching user-edited keywords or custom categories.
+export function healSeedKeywords(categories: Category[]): Category[] {
+  let changed = false;
+  const healed = categories.map((c) => {
+    const seed = SEED_KEYWORDS_BY_ID.get(c.id);
+    if (seed && seed.length && (!c.keywords || c.keywords.length === 0)) {
+      changed = true;
+      return { ...c, keywords: [...seed] };
+    }
+    return c;
+  });
+  return changed ? healed : categories;
+}

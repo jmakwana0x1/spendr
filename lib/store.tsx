@@ -26,7 +26,7 @@ import {
   DATA_KEY,
 } from "./storage";
 import { monthStart, todayISO, uid } from "./format";
-import { SEED_CATEGORIES } from "./seed";
+import { SEED_CATEGORIES, healSeedKeywords } from "./seed";
 import { useAuth } from "./auth";
 import {
   applyOp,
@@ -169,6 +169,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (opsRef.current.length) {
           await flush();
           server = await pullAll(auth.supabase!);
+        }
+        // Recover built-in categories whose keywords were lost server-side, and
+        // push the fix back up so other devices pick it up too.
+        const healed = healSeedKeywords(server.categories);
+        if (healed !== server.categories) {
+          server = { ...server, categories: healed };
+          await seedRemoteCategories(auth.supabase!, healed, userId);
         }
         if (cancelled) return;
         dataRef.current = server;
