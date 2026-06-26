@@ -30,21 +30,21 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[72px] z-50 flex justify-center px-4">
+      <div className="pointer-events-none fixed inset-x-0 bottom-[84px] z-30 flex justify-center px-4">
         <AnimatePresence>
           {toast && (
             <motion.div
               key={toast.id}
-              initial={{ y: 24, opacity: 0 }}
+              initial={{ y: 12, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 24, opacity: 0 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="pointer-events-auto flex w-full max-w-col items-center justify-between gap-3 rounded-xl border border-hairline bg-elevated px-4 py-3 text-sm shadow-lg"
+              exit={{ y: 12, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="pointer-events-auto flex h-[46px] items-center gap-3.5 whitespace-nowrap rounded-xl border border-white/10 bg-[#1f1f25] py-0 pl-4 pr-2 shadow-[0_12px_30px_rgba(0,0,0,0.5)]"
             >
-              <span className="text-fg">{toast.message}</span>
+              <span className="text-[13px] text-fg">{toast.message}</span>
               {toast.actionLabel && (
                 <button
-                  className="shrink-0 font-medium text-accent"
+                  className="h-8 shrink-0 rounded-lg bg-accent/[0.16] px-3.5 text-[13px] font-semibold text-accent"
                   onClick={() => {
                     toast.onAction?.();
                     setToast(null);

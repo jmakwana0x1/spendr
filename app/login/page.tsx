@@ -14,21 +14,30 @@ export default function LoginPage() {
   }, [ready, user, enabled, router]);
 
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
-      <div className="mb-1 text-2xl font-semibold text-accent">S</div>
-      <h1 className="text-xl font-semibold">Spendr</h1>
-      <p className="mt-2 max-w-xs text-sm text-muted">
-        Fast personal expense logging. Sign in to sync across your devices.
-      </p>
+    <div className="flex min-h-[70vh] flex-col items-center justify-center px-9 text-center">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-accent font-mono text-xl font-bold text-accent-ink">
+          S
+        </span>
+        <span className="text-2xl font-semibold tracking-tight">Spendr</span>
+      </div>
+      <p className="mt-3.5 text-sm text-muted">Log money in three seconds.</p>
 
       {enabled ? (
-        <button
-          onClick={signInWithGoogle}
-          className="mt-8 flex h-tap items-center gap-2 rounded-xl bg-accent px-6 font-semibold text-bg"
-        >
-          <GoogleMark />
-          Continue with Google
-        </button>
+        <>
+          <button
+            onClick={signInWithGoogle}
+            className="mt-8 flex h-[50px] w-full max-w-xs items-center justify-center gap-2.5 rounded-xl bg-fg px-6 font-semibold text-bg"
+          >
+            <GoogleMark />
+            Continue with Google
+          </button>
+          <p className="mt-4 text-xs leading-relaxed text-faint">
+            Single account. Your data stays yours.
+            <br />
+            Works offline once signed in.
+          </p>
+        </>
       ) : (
         <p className="mt-8 max-w-xs rounded-xl border border-hairline bg-surface p-4 text-sm text-muted">
           Cloud sync is off. The app runs on this device only. Add your Supabase keys
@@ -41,11 +50,11 @@ export default function LoginPage() {
 
 function GoogleMark() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
-      <path fill="#0F1115" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
-      <path fill="#0F1115" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.02-3.7H.92v2.33A9 9 0 0 0 9 18Z" opacity=".7" />
-      <path fill="#0F1115" d="M3.98 10.72A5.4 5.4 0 0 1 3.98 7.28V4.96H.92a9 9 0 0 0 0 8.09l3.06-2.33Z" opacity=".5" />
-      <path fill="#0F1115" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.9 11.43 0 9 0A9 9 0 0 0 .92 4.96l3.06 2.32C4.68 5.16 6.66 3.58 9 3.58Z" opacity=".85" />
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" />
     </svg>
   );
 }

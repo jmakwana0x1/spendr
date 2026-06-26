@@ -1,11 +1,10 @@
 "use client";
 
 import type { Category } from "@/lib/types";
-import { Icon } from "./Icon";
 import { cn } from "@/lib/cn";
 
-// Pill chip: category color at low opacity as fill, full color as text/border
-// when active. Min 44px tap target.
+// Obsidian chip: square color dot + name, 36px tall. Active = accent fill,
+// border and text. Inactive = elevated fill, hairline border, muted text.
 export function CategoryChip({
   category,
   active,
@@ -20,22 +19,23 @@ export function CategoryChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-tap shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
-        active ? "" : "text-muted"
+        "flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] border px-3 text-sm transition-colors",
+        active
+          ? "border-accent bg-accent/[0.14] text-accent"
+          : "border-hairline bg-elevated text-muted"
       )}
-      style={{
-        backgroundColor: active ? hexA(category.color, 0.18) : hexA(category.color, 0.08),
-        borderColor: active ? category.color : "transparent",
-        color: active ? category.color : undefined,
-      }}
     >
-      <Icon name={category.icon} size={16} />
-      <span className="whitespace-nowrap">{category.name}</span>
+      <span
+        className="h-1.5 w-1.5 rounded-sm"
+        style={{ backgroundColor: category.color }}
+        aria-hidden
+      />
+      {category.name}
     </button>
   );
 }
 
-// Hex with alpha. Accepts #RGB or #RRGGBB.
+// Hex with alpha. Accepts #RGB or #RRGGBB. Kept for callers that tint by color.
 export function hexA(hex: string, alpha: number): string {
   let h = hex.replace("#", "");
   if (h.length === 3) h = h.split("").map((c) => c + c).join("");

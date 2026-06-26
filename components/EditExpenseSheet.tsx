@@ -4,31 +4,30 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import type { Category, Expense } from "@/lib/types";
 import { activeCategories } from "@/lib/selectors";
-import { hexA } from "./CategoryChip";
-import { cn } from "@/lib/cn";
+import { CategoryChip } from "./CategoryChip";
 
 export function EditExpenseSheet({
   expense,
   categories,
   onClose,
   onSave,
+  onDelete,
 }: {
   expense: Expense | null;
   categories: Category[];
   onClose: () => void;
   onSave: (id: string, patch: Partial<Expense>) => void;
+  onDelete: (expense: Expense) => void;
 }) {
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [note, setNote] = useState("");
-  const [spentAt, setSpentAt] = useState("");
 
   useEffect(() => {
     if (expense) {
       setAmount(String(expense.amount));
       setCategoryId(expense.category_id);
       setNote(expense.note ?? "");
-      setSpentAt(expense.spent_at);
     }
   }, [expense]);
 
@@ -42,7 +41,6 @@ export function EditExpenseSheet({
       amount: amt,
       category_id: categoryId,
       note: note.trim() || null,
-      spent_at: spentAt,
     });
     onClose();
   }
@@ -57,77 +55,64 @@ export function EditExpenseSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/60"
+            className="fixed inset-0 z-20 mx-auto max-w-col bg-black/55"
           />
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-col rounded-t-2xl border-t border-hairline bg-surface p-4 pb-6"
+            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+            className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-col rounded-t-[20px] border-t border-white/10 bg-surface px-[18px] pb-[26px] pt-[18px]"
           >
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-hairline" />
-            <h2 className="mb-4 text-base font-semibold">Edit expense</h2>
-
-            <label className="mb-1 block text-xs text-muted">Amount</label>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="tnum mb-4 w-full rounded-xl border border-hairline bg-elevated px-4 py-3 text-lg outline-none focus:border-accent"
-            />
-
-            <label className="mb-1 block text-xs text-muted">Category</label>
-            <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
-              {cats.map((c) => {
-                const active = c.id === categoryId;
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setCategoryId(c.id)}
-                    className={cn(
-                      "h-tap shrink-0 rounded-full border px-4 text-sm font-medium",
-                      active ? "" : "text-muted"
-                    )}
-                    style={{
-                      backgroundColor: active ? hexA(c.color, 0.18) : hexA(c.color, 0.08),
-                      borderColor: active ? c.color : "transparent",
-                      color: active ? c.color : undefined,
-                    }}
-                  >
-                    {c.name}
-                  </button>
-                );
-              })}
+            <div className="flex items-center justify-between">
+              <span className="text-base font-semibold">Edit expense</span>
+              <button onClick={onClose} className="text-[13px] text-muted">
+                Done
+              </button>
             </div>
 
-            <label className="mb-1 block text-xs text-muted">Note</label>
+            {/* Amount */}
+            <div className="mt-4 flex h-[54px] items-center gap-2 rounded-xl border border-hairline bg-elevated px-3.5">
+              <span className="font-mono text-xl text-muted">₹</span>
+              <input
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                className="tnum min-w-0 flex-1 bg-transparent text-2xl font-semibold outline-none"
+              />
+            </div>
+
+            {/* Category chips */}
+            <div className="no-scrollbar mt-[13px] flex gap-[7px] overflow-x-auto">
+              {cats.map((c) => (
+                <CategoryChip
+                  key={c.id}
+                  category={c}
+                  active={c.id === categoryId}
+                  onClick={() => setCategoryId(c.id)}
+                />
+              ))}
+            </div>
+
+            {/* Note */}
             <input
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="optional"
-              className="mb-4 w-full rounded-xl border border-hairline bg-elevated px-4 py-3 text-sm outline-none focus:border-accent"
+              placeholder="Add a note"
+              className="mt-[13px] h-[46px] w-full rounded-xl border border-hairline bg-elevated px-3.5 text-sm outline-none placeholder:text-[#45454c]"
             />
 
-            <label className="mb-1 block text-xs text-muted">Date</label>
-            <input
-              type="date"
-              value={spentAt}
-              onChange={(e) => setSpentAt(e.target.value)}
-              className="tnum mb-5 w-full rounded-xl border border-hairline bg-elevated px-4 py-3 text-sm outline-none focus:border-accent"
-            />
-
-            <div className="flex gap-3">
+            {/* Actions */}
+            <div className="mt-4 flex gap-2.5">
               <button
-                onClick={onClose}
-                className="h-tap flex-1 rounded-xl border border-hairline text-sm font-medium text-muted"
+                onClick={() => onDelete(expense)}
+                className="h-12 shrink-0 rounded-xl border border-over/40 px-5 text-[15px] text-over"
               >
-                Cancel
+                Delete
               </button>
               <button
                 onClick={save}
-                className="h-tap flex-1 rounded-xl bg-accent text-sm font-semibold text-bg"
+                className="h-12 flex-1 rounded-xl bg-accent text-[15px] font-semibold text-accent-ink"
               >
                 Save
               </button>

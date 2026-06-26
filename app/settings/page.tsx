@@ -84,7 +84,7 @@ function AccountPanel() {
     return (
       <button
         onClick={signInWithGoogle}
-        className="h-tap w-full rounded-xl bg-accent text-sm font-semibold text-bg"
+        className="h-tap w-full rounded-xl bg-accent text-sm font-semibold text-accent-ink"
       >
         Continue with Google
       </button>
@@ -171,7 +171,7 @@ function CategoryManager() {
             });
             setNewName("");
           }}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-bg"
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-ink"
         >
           <Plus size={18} />
         </button>
@@ -330,7 +330,7 @@ function TemplateManager() {
             className="tnum w-16 rounded-lg bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted"
           />
         </div>
-        <button onClick={add} className="h-10 w-full rounded-lg bg-accent text-sm font-semibold text-bg">
+        <button onClick={add} className="h-10 w-full rounded-lg bg-accent text-sm font-semibold text-accent-ink">
           Add template
         </button>
       </div>
@@ -434,7 +434,7 @@ function ExportPanel() {
           downloadCSV(`spendr-${todayISO()}.csv`, toCSV(data, filter));
           toast.show(`Exported ${count} expenses`);
         }}
-        className="h-tap w-full rounded-xl bg-accent text-sm font-semibold text-bg"
+        className="h-tap w-full rounded-xl bg-accent text-sm font-semibold text-accent-ink"
       >
         Export CSV ({count})
       </button>
@@ -474,7 +474,7 @@ function DataPanel() {
                 setConfirm(false);
                 toast.show("All data reset");
               }}
-              className="h-tap flex-1 rounded-xl bg-over text-sm font-semibold text-bg"
+              className="h-tap flex-1 rounded-xl bg-over text-sm font-semibold text-accent-ink"
             >
               Reset
             </button>
