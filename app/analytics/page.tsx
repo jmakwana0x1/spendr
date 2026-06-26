@@ -23,7 +23,7 @@ import {
 } from "@/lib/selectors";
 import { monthStart, rupees } from "@/lib/format";
 
-const AXIS = { fontSize: 11, fill: "#8B8F99" };
+const AXIS = { fontSize: 11, fill: "#86868F" };
 
 export default function AnalyticsPage() {
   const { ready, data } = useStore();
@@ -107,10 +107,10 @@ export default function AnalyticsPage() {
           <BarChart data={week} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
             <XAxis dataKey="label" tick={AXIS} axisLine={false} tickLine={false} />
             <Tooltip
-              cursor={{ fill: "#1E2128" }}
+              cursor={{ fill: "#15151A" }}
               content={<MoneyTooltip />}
             />
-            <Bar dataKey="total" radius={[4, 4, 0, 0]} fill="#34D399" />
+            <Bar dataKey="total" radius={[4, 4, 0, 0]} fill="#34D39E" />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -125,9 +125,9 @@ export default function AnalyticsPage() {
             <Line
               type="monotone"
               dataKey="total"
-              stroke="#34D399"
+              stroke="#34D39E"
               strokeWidth={2}
-              dot={{ r: 3, fill: "#34D399" }}
+              dot={{ r: 3, fill: "#34D39E" }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -182,7 +182,7 @@ export default function AnalyticsPage() {
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={overTimeData} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
             <XAxis dataKey="label" tick={AXIS} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{ fill: "#1E2128" }} content={<StackTooltip cats={overTime.categories} />} />
+            <Tooltip cursor={{ fill: "#15151A" }} content={<StackTooltip cats={overTime.categories} />} />
             {overTime.categories.map((c, i) => (
               <Bar
                 key={c.id}

@@ -71,7 +71,7 @@ export default function BudgetPage() {
               "h-tap rounded-xl px-4 text-sm font-semibold",
               enabled
                 ? "border border-hairline text-muted"
-                : "bg-accent text-bg"
+                : "bg-accent text-accent-ink"
             )}
           >
             {enabled ? "Turn off" : "Turn on"}
@@ -184,7 +184,7 @@ function Bar({ pct, over, thin }: { pct: number; over?: boolean; thin?: boolean 
         className="h-full rounded-full transition-all"
         style={{
           width: `${pct}%`,
-          backgroundColor: over ? "#F26D6D" : "#34D399",
+          backgroundColor: over ? "#F87171" : "#34D39E",
         }}
       />
     </div>

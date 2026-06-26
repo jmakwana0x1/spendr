@@ -137,22 +137,30 @@ export default function HomePage() {
       )}
 
       {/* Quick-add: the visual anchor of the home screen. */}
-      <section className="rounded-2xl border border-hairline bg-surface p-3 shadow-sm">
-        <input
-          value={raw}
-          onChange={(e) => onRawChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
-          }}
-          placeholder="400 dinner"
-          autoFocus
-          className="w-full rounded-xl bg-elevated px-4 py-3 text-base outline-none placeholder:text-muted focus:ring-1 focus:ring-accent"
-        />
+      <section className="rounded-2xl border border-hairline bg-surface p-3 shadow-lg shadow-black/40">
+        <div className="flex items-center gap-2 rounded-xl bg-elevated px-3 focus-within:ring-1 focus-within:ring-accent">
+          <span className="font-mono text-accent" aria-hidden>
+            &rsaquo;
+          </span>
+          <input
+            value={raw}
+            onChange={(e) => onRawChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+            }}
+            placeholder="400 dinner"
+            autoFocus
+            className="w-full bg-transparent py-3 text-base outline-none placeholder:text-muted"
+          />
+        </div>
 
         {/* Parse preview line */}
-        <div className="mt-2 min-h-[20px] px-1 text-sm">
+        <div className="mt-2 flex min-h-[20px] items-center gap-2 px-1 text-sm">
           {raw.trim() && preview.amount != null ? (
             <span className="text-muted">
+              <span className="mr-1 text-xs uppercase tracking-wider text-accent">
+                Parsed
+              </span>
               <span className="tnum text-fg">{rupees(preview.amount)}</span>
               {preview.categoryId && (
                 <> · {byId[preview.categoryId]?.name ?? "Other"}</>
@@ -180,7 +188,7 @@ export default function HomePage() {
           </div>
           <button
             onClick={commit}
-            className="h-tap shrink-0 rounded-xl bg-accent px-5 font-semibold text-bg active:scale-[0.98]"
+            className="h-tap shrink-0 rounded-xl bg-accent px-5 font-semibold text-accent-ink active:scale-[0.98]"
           >
             Add
           </button>

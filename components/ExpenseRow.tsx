@@ -32,7 +32,7 @@ export function ExpenseRow({
       className="group flex items-center gap-3 border-b border-hairline py-3"
     >
       <span
-        className="mt-1 h-2.5 w-2.5 shrink-0 self-start rounded-full"
+        className="mt-1 h-2.5 w-2.5 shrink-0 self-start rounded-sm"
         style={{ backgroundColor: color }}
         aria-hidden
       />

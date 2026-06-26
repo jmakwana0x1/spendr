@@ -127,7 +127,7 @@ export function EditExpenseSheet({
               </button>
               <button
                 onClick={save}
-                className="h-tap flex-1 rounded-xl bg-accent text-sm font-semibold text-bg"
+                className="h-tap flex-1 rounded-xl bg-accent text-sm font-semibold text-accent-ink"
               >
                 Save
               </button>
