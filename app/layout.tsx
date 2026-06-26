@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <StoreProvider>
             <ToastProvider>
-              <main className="mx-auto min-h-screen w-full max-w-col px-4 pb-[84px] pt-4">
+              <main className="mx-auto min-h-screen w-full max-w-col px-[18px] pb-24 pt-0">
                 {children}
               </main>
               <BottomNav />
