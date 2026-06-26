@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore, useCurrentMonth } from "@/lib/store";
 import {
   activeCategories,
@@ -35,9 +35,19 @@ export default function BudgetPage() {
 
   const [addOpen, setAddOpen] = useState(false);
 
+  const cap = budget?.total_cap ?? 0;
+  // Local editing string for the total-cap field. Kept controlled so the input
+  // never remounts while typing; synced down only when the stored cap changes
+  // from outside this field (e.g. toggling the budget on/off).
+  const [capStr, setCapStr] = useState(() => (cap > 0 ? String(cap) : ""));
+  useEffect(() => {
+    const parsed = capStr === "" ? 0 : parseInt(capStr, 10);
+    if (parsed !== cap) setCapStr(cap > 0 ? String(cap) : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cap]);
+
   if (!ready) return <div className="py-20 text-center text-sm text-muted">Loading…</div>;
 
-  const cap = budget?.total_cap ?? 0;
   const capPct = cap > 0 ? Math.min(100, (spent / cap) * 100) : 0;
   const left = cap - spent;
   const cats = activeCategories(data.categories);
@@ -77,10 +87,10 @@ export default function BudgetPage() {
               <span className="font-mono text-xl text-muted">₹</span>
               <input
                 inputMode="numeric"
-                defaultValue={String(cap)}
-                key={cap}
+                value={capStr}
                 onChange={(e) => {
                   const v = e.target.value.replace(/[^\d]/g, "");
+                  setCapStr(v);
                   setMonthlyCap(month, v ? parseInt(v, 10) : 0);
                 }}
                 className="tnum w-[150px] border-b border-white/[0.12] bg-transparent pb-0.5 text-[30px] font-semibold outline-none"
@@ -176,6 +186,9 @@ export default function BudgetPage() {
                           setCategoryCap(month, c.id, v);
                           setAddOpen(false);
                         }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") e.currentTarget.blur();
                       }}
                       className="tnum w-20 bg-transparent py-1.5 pl-1 text-sm outline-none placeholder:text-[#45454c]"
                     />
