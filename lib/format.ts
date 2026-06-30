@@ -22,8 +22,15 @@ export function rupees(n: number): string {
   return "₹" + formatMoney(n);
 }
 
+// Returns YYYY-MM-DD in the user's local timezone, not UTC.
+// new Date().toISOString() is always UTC and will return the wrong date for
+// users east of UTC (e.g. IST UTC+5:30) during the first ~5.5 hours of the day.
+export function localDateISO(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localDateISO();
 }
 
 export function monthStart(d: Date = new Date()): string {

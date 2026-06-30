@@ -1,5 +1,5 @@
 import type { AppData, Budget, Category, Expense } from "./types";
-import { monthStart, todayISO } from "./format";
+import { localDateISO, monthStart, todayISO } from "./format";
 
 export function categoriesById(cats: Category[]): Record<string, Category> {
   const m: Record<string, Category> = {};
@@ -26,7 +26,7 @@ export function categoriesByWeekFrequency(
   cats: Category[],
   expenses: Expense[]
 ): Category[] {
-  const since = startOfWeek().toISOString().slice(0, 10);
+  const since = localDateISO(startOfWeek());
   const counts: Record<string, number> = {};
   for (const e of expenses) {
     if (e.spent_at >= since) counts[e.category_id] = (counts[e.category_id] ?? 0) + 1;
@@ -107,7 +107,7 @@ export function spendPerDayOfWeek(
   for (let i = 0; i < 7; i++) {
     const d = new Date(base);
     d.setDate(base.getDate() + i);
-    const iso = d.toISOString().slice(0, 10);
+    const iso = localDateISO(d);
     const total = expenses
       .filter((e) => e.spent_at === iso)
       .reduce((s, e) => s + e.amount, 0);
