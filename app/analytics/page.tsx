@@ -5,6 +5,7 @@ import { useStore, useCurrentMonth } from "@/lib/store";
 import {
   categoriesById,
   categoryBreakdown,
+  categoryDetail,
   categoryOverTime,
   monthSummary,
   monthlyTrend,
@@ -18,6 +19,7 @@ export default function AnalyticsPage() {
   const { ready, data } = useStore();
   const month = useCurrentMonth();
   const [prevWeek, setPrevWeek] = useState(false);
+  const [openCat, setOpenCat] = useState<string | null>(null);
 
   const monthLabel = new Date(month + "T00:00:00").toLocaleString("en", {
     month: "long",
@@ -29,6 +31,7 @@ export default function AnalyticsPage() {
   );
   const trend = useMemo(() => monthlyTrend(data.expenses, 6), [data.expenses]);
   const breakdown = useMemo(() => categoryBreakdown(data, month), [data, month]);
+  const detail = useMemo(() => categoryDetail(data, month), [data, month]);
   const overTime = useMemo(() => categoryOverTime(data, 4), [data]);
   const summary = useMemo(() => monthSummary(data, month), [data, month]);
   const byId = useMemo(() => categoriesById(data.categories), [data.categories]);
@@ -160,7 +163,7 @@ export default function AnalyticsPage() {
         </div>
       </Card>
 
-      {/* Donut + breakdown */}
+      {/* Donut + total */}
       <div className="mt-3 flex gap-3">
         <Card className="flex flex-[0_0_130px] items-center justify-center">
           <div
@@ -173,24 +176,87 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </Card>
-        <Card className="flex flex-1 flex-col gap-[9px]">
-          {breakdown.slice(0, 5).map((b) => (
-            <div key={b.id} className="flex items-center gap-[7px] text-xs">
-              <span
-                className="h-[7px] w-[7px] rounded-sm"
-                style={{ backgroundColor: b.color }}
-              />
-              <span className="text-muted">{b.name}</span>
-              <span className="tnum ml-auto text-fg">
-                {Math.round((b.total / total) * 100)}%
-              </span>
+        <Card className="flex flex-1 flex-col justify-center gap-[10px]">
+          <div>
+            <div className="text-[11px] text-faint">This month</div>
+            <div className="tnum mt-[3px] text-[22px] font-semibold tracking-[-0.01em]">
+              {rupees(summary.total)}
             </div>
-          ))}
-          {breakdown.length === 0 && (
-            <span className="text-xs text-muted">No spending this month.</span>
-          )}
+          </div>
+          <div className="flex gap-[18px]">
+            <div>
+              <div className="text-[11px] text-faint">Entries</div>
+              <div className="tnum mt-[2px] text-[15px]">{detail.reduce((a, c) => a + c.count, 0)}</div>
+            </div>
+            <div>
+              <div className="text-[11px] text-faint">Categories</div>
+              <div className="tnum mt-[2px] text-[15px]">{detail.length}</div>
+            </div>
+          </div>
         </Card>
       </div>
+
+      {/* By category: amounts, counts, and the notes you wrote */}
+      <Card className="mt-3">
+        <div className="text-[13px] font-medium">By category</div>
+        <div className="mt-2.5 flex flex-col">
+          {detail.map((c) => {
+            const open = openCat === c.id;
+            const pct = Math.round(c.share * 100);
+            return (
+              <div key={c.id} className="border-t border-white/[0.05] first:border-t-0">
+                <button
+                  onClick={() => setOpenCat(open ? null : c.id)}
+                  className="flex w-full items-center gap-[9px] py-[11px] text-left"
+                >
+                  <span
+                    className="h-[9px] w-[9px] shrink-0 rounded-sm"
+                    style={{ backgroundColor: c.color }}
+                  />
+                  <span className="text-sm text-fg">{c.name}</span>
+                  <span className="tnum text-[11px] text-faint">{c.count}</span>
+                  <span className="ml-auto flex items-baseline gap-2.5">
+                    <span className="tnum text-[11px] text-faint">{pct}%</span>
+                    <span className="tnum text-[15px] text-fg">{rupees(c.total)}</span>
+                  </span>
+                  <span
+                    className="ml-1 shrink-0 text-[10px] text-faint transition-transform"
+                    style={{ transform: open ? "rotate(90deg)" : "none" }}
+                    aria-hidden
+                  >
+                    ›
+                  </span>
+                </button>
+                {/* Proportion bar in the category's own color */}
+                <div className="mb-[11px] h-[3px] overflow-hidden rounded-full bg-white/[0.05]">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${Math.max(2, c.share * 100)}%`, backgroundColor: c.color }}
+                  />
+                </div>
+                {open && (
+                  <div className="mb-[11px] flex flex-col gap-[7px] pl-[18px]">
+                    {c.expenses.map((e) => (
+                      <div key={e.id} className="flex items-baseline gap-3 text-xs">
+                        <span className="min-w-0 flex-1 truncate text-muted">
+                          {e.note || <span className="text-faint">No note</span>}
+                        </span>
+                        <span className="shrink-0 text-[10px] text-faint">{shortDate(e.spent_at)}</span>
+                        <span className="tnum shrink-0 text-[13px] text-fg">{rupees(e.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {detail.length === 0 && (
+            <span className="py-2 text-xs text-muted">
+              No spending this month. Try logging something like 400 dinner.
+            </span>
+          )}
+        </div>
+      </Card>
 
       {/* Category drift */}
       <Card className="mt-3">
@@ -248,6 +314,13 @@ export default function AnalyticsPage() {
       </Card>
     </div>
   );
+}
+
+function shortDate(iso: string): string {
+  return new Date(iso + "T00:00:00").toLocaleDateString("en", {
+    day: "numeric",
+    month: "short",
+  });
 }
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
