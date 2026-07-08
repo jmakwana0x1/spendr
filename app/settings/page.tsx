@@ -8,7 +8,7 @@ import { useToast } from "@/components/Toast";
 import { Icon } from "@/components/Icon";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import type { Category, Template } from "@/lib/types";
-import { todayISO } from "@/lib/format";
+import { todayISO, localDateISO } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
 import type { SyncStatus } from "@/lib/store";
 
@@ -365,6 +365,42 @@ function TemplateRow({
   );
 }
 
+// Quick date ranges for CSV export. Each returns [from, to] as ISO dates, or
+// empty strings for "All time" so the export covers every expense.
+const PERIOD_PRESETS: { label: string; range: () => [string, string] }[] = [
+  {
+    label: "This month",
+    range: () => {
+      const n = new Date();
+      return [localDateISO(new Date(n.getFullYear(), n.getMonth(), 1)), todayISO()];
+    },
+  },
+  {
+    label: "Last month",
+    range: () => {
+      const n = new Date();
+      const first = new Date(n.getFullYear(), n.getMonth() - 1, 1);
+      const last = new Date(n.getFullYear(), n.getMonth(), 0);
+      return [localDateISO(first), localDateISO(last)];
+    },
+  },
+  {
+    label: "Last 3 months",
+    range: () => {
+      const n = new Date();
+      return [localDateISO(new Date(n.getFullYear(), n.getMonth() - 2, 1)), todayISO()];
+    },
+  },
+  {
+    label: "This year",
+    range: () => {
+      const n = new Date();
+      return [localDateISO(new Date(n.getFullYear(), 0, 1)), todayISO()];
+    },
+  },
+  { label: "All time", range: () => ["", ""] },
+];
+
 function ExportPanel() {
   const { data } = useStore();
   const toast = useToast();
@@ -385,8 +421,38 @@ function ExportPanel() {
     [data.expenses, categoryId, from, to, note]
   );
 
+  // A preset is "active" when the current from/to exactly match its range.
+  const activePreset = PERIOD_PRESETS.find(({ range }) => {
+    const [f, t] = range();
+    return f === from && t === to;
+  })?.label;
+
   return (
     <div className="space-y-3">
+      <Field label="Period">
+        <div className="flex flex-wrap gap-2">
+          {PERIOD_PRESETS.map(({ label, range }) => {
+            const active = activePreset === label;
+            return (
+              <button
+                key={label}
+                onClick={() => {
+                  const [f, t] = range();
+                  setFrom(f);
+                  setTo(t);
+                }}
+                className={`rounded-full border px-3 py-1.5 text-xs ${
+                  active
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-hairline text-muted"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
       <Field label="Category">
         <select
           value={categoryId}

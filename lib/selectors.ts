@@ -175,6 +175,41 @@ export function categoryOverTime(
   return { months, series, categories: cats };
 }
 
+export type CategoryDetail = {
+  id: string;
+  name: string;
+  color: string;
+  total: number;
+  count: number;
+  share: number; // fraction of the month's total, 0..1
+  expenses: Expense[]; // this category's expenses, largest first
+};
+
+// Per-category breakdown for a month that also carries each expense (with its
+// note) so the analytics screen can show the actual amounts and the labels you
+// wrote, not just a percentage.
+export function categoryDetail(data: AppData, month: string): CategoryDetail[] {
+  const inMonth = expensesInMonth(data.expenses, month);
+  const byId = categoriesById(data.categories);
+  const monthTotal = inMonth.reduce((s, e) => s + e.amount, 0) || 1;
+  const groups: Record<string, Expense[]> = {};
+  for (const e of inMonth) (groups[e.category_id] ??= []).push(e);
+  return Object.entries(groups)
+    .map(([id, list]) => {
+      const total = list.reduce((s, e) => s + e.amount, 0);
+      return {
+        id,
+        name: byId[id]?.name ?? "Unknown",
+        color: byId[id]?.color ?? "#8B8F99",
+        total,
+        count: list.length,
+        share: total / monthTotal,
+        expenses: list.slice().sort((a, b) => b.amount - a.amount),
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+}
+
 export type MonthSummary = {
   total: number;
   cap: number | null;
